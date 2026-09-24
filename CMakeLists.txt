@@ -32,6 +32,8 @@ qt_add_qml_module(${CMAKE_PROJECT_NAME}
     QML_FILES
       Main.qml
       qml/controls/QfmToolbar.qml
+      qml/controls/QfmFileListHeaderButton.qml
+      qml/components/QfmFileListPanel.qml
     SOURCES
       fileutils.h fileutils.cpp
       qfmfilesystemmodel.h qfmfilesystemmodel.cpp

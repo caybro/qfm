@@ -57,12 +57,12 @@ QVariant QfmFilesystemModel::data(const QModelIndex &index, int role) const
   case iconSource: {
     if (entry.isSymLink()) {
       if (entry.isDir())
-        return "icons/folder_link.svg"_L1;
-      return "icons/file_link.svg"_L1;
+        return "/qt/qml/QfmCore/icons/folder_link.svg"_L1;
+      return "/qt/qml/QfmCore/icons/file_link.svg"_L1;
     }
     if (entry.isDir())
-      return "icons/folder.svg"_L1;
-    return "icons/file.svg"_L1;
+      return "/qt/qml/QfmCore/icons/folder.svg"_L1;
+    return "/qt/qml/QfmCore/icons/file.svg"_L1;
   }
   case baseName:
     return entry.baseName();
@@ -114,7 +114,7 @@ void QfmFilesystemModel::fetchDir()
 
   m_entries.clear();
   //qWarning() << "!!! ITERATING:" << m_baseDir;
-  QDirIterator it(m_baseDir, QDir::Files | QDir::Dirs | QDir::Hidden | QDir::NoDot);
+  QDirIterator it(m_baseDir, QDir::Files | QDir::Dirs | QDir::Hidden);
   while (it.hasNext()) {
     const auto fi = it.nextFileInfo();
     //qWarning() << "!!! FOUND:" << it.fileName() << fi.canonicalFilePath();
