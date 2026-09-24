@@ -42,6 +42,8 @@ qt_add_qml_module(${CMAKE_PROJECT_NAME}
       icons/create_new_folder.svg
       icons/file.svg
       icons/file_link.svg
+      icons/file_other.svg
+      icons/file_exec.svg
       icons/folder.svg
       icons/folder_hidden.svg
       icons/folder_limited.svg

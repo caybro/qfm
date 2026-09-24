@@ -136,8 +136,13 @@ Frame {
             verticalAlignment: Text.AlignVCenter
             elide: Text.ElideRight
             Layout.margins: 8
-            text: (listview.currentItem?.isSymlink ? "→ " : "") + // TODO add/display symlink target
-                  listview.currentItem?.text ?? qsTr("N/A") // not ready or empty dir
+            text: {
+                if (!listview.currentItem)
+                    return qsTr("N/A") // not ready or empty dir
+                return listview.currentItem.isSymlink ? "%1 → %2".arg(listview.currentItem.text).arg(listview.currentItem.symlinkTarget)
+                                                      : listview.currentItem.text
+            }
+
             font.weight: Font.Medium
         }
     }
@@ -148,6 +153,7 @@ Frame {
         required property int index
 
         readonly property bool isSymlink: model.isSymlink
+        readonly property string symlinkTarget: model.symlinkTarget
 
         width: ListView.view.width
         highlighted: ListView.view.activeFocus && ListView.isCurrentItem
@@ -161,7 +167,7 @@ Frame {
         icon.width: 20
         icon.height: 20
 
-        // TODO custom `background`
+        enabled: model.isReadable // TODO custom `background`
 
         contentItem: RowLayout {
             spacing: delegate.spacing
@@ -191,11 +197,14 @@ Frame {
 
         onClicked: {
             ListView.view.forceActiveFocus()
-            if (model.isDir) {
+
+            if (!model.isReadable)
+                return
+
+            if (model.isDir) { // DIR
                 root.folder = model.filePath
                 ListView.view.currentIndex = 0
-            }
-            else {
+            } else { // FILE
                 ListView.view.currentIndex = index
                 Qt.openUrlExternally(model.url)
             }

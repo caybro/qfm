@@ -19,12 +19,36 @@ constexpr auto kRoleModified = "modified";
 constexpr auto kRoleAccessed = "accessed";
 constexpr auto kRoleIsDir = "isDir";
 constexpr auto kRoleIsSymlink = "isSymlink";
+constexpr auto kRoleSymlinkTarget = "symlinkTarget";
+constexpr auto kRoleIsReadable = "isReadable";
+constexpr auto kRoleIsExecutable = "isExecutable";
+
+auto entryIcon(const QFileInfo& entry) {
+  if (entry.isDir()) {
+    if (!entry.isReadable())
+      return "/qt/qml/QfmCore/icons/folder_limited.svg"_L1;
+    if (entry.isSymLink())
+      return "/qt/qml/QfmCore/icons/folder_link.svg"_L1;
+    return "/qt/qml/QfmCore/icons/folder.svg"_L1;
+  } else if (entry.isFile()) {
+    if (entry.isExecutable())
+      return "/qt/qml/QfmCore/icons/file_exec.svg"_L1;
+    if (entry.isSymLink())
+      return "/qt/qml/QfmCore/icons/file_link.svg"_L1;
+    return "/qt/qml/QfmCore/icons/file.svg"_L1;
+  }
+  if (entry.isSymLink())
+    return "/qt/qml/QfmCore/icons/file_link.svg"_L1;
+
+  return "/qt/qml/QfmCore/icons/file_other.svg"_L1;
+}
 }
 
 QfmFilesystemModel::QfmFilesystemModel(QObject *parent)
     : QAbstractListModel(parent)
 {
   connect(this, &QfmFilesystemModel::baseDirChanged, this, &QfmFilesystemModel::fetchDir);
+  // TODO setup QFileSystemWatcher on the baseDir
 }
 
 int QfmFilesystemModel::rowCount(const QModelIndex &parent) const
@@ -49,16 +73,8 @@ QVariant QfmFilesystemModel::data(const QModelIndex &index, int role) const
     return entry.canonicalPath();
   case url:
     return QUrl::fromLocalFile(entry.canonicalFilePath());
-  case iconSource: {
-    if (entry.isSymLink()) {
-      if (entry.isDir())
-        return "/qt/qml/QfmCore/icons/folder_link.svg"_L1;
-      return "/qt/qml/QfmCore/icons/file_link.svg"_L1;
-    }
-    if (entry.isDir())
-      return "/qt/qml/QfmCore/icons/folder.svg"_L1;
-    return "/qt/qml/QfmCore/icons/file.svg"_L1;
-  }
+  case iconSource:
+    return entryIcon(entry);
   case baseName:
     return entry.baseName();
   case suffix:
@@ -73,6 +89,13 @@ QVariant QfmFilesystemModel::data(const QModelIndex &index, int role) const
     return entry.isDir();
   case isSymlink:
     return entry.isSymLink();
+  case symlinkTarget:
+    return entry.isSymLink() && entry.exists() ? entry.symLinkTarget()
+                                               : "N/A"_L1;
+  case isReadable:
+    return entry.isReadable();
+  case isExecutable:
+    return entry.isExecutable();
   }
 
   return {};
@@ -93,6 +116,9 @@ QHash<int, QByteArray> QfmFilesystemModel::roleNames() const
       {QfmFilesystemModel::Roles::accessed, kRoleAccessed},
       {QfmFilesystemModel::Roles::isDir, kRoleIsDir},
       {QfmFilesystemModel::Roles::isSymlink, kRoleIsSymlink},
+      {QfmFilesystemModel::Roles::symlinkTarget, kRoleSymlinkTarget},
+      {QfmFilesystemModel::Roles::isReadable, kRoleIsReadable},
+      {QfmFilesystemModel::Roles::isExecutable, kRoleIsExecutable},
   };
   return roles;
 }

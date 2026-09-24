@@ -2,9 +2,7 @@
 
 #include <QAbstractListModel>
 #include <QFileInfo>
-#include <qnamespace.h>
 #include <qqmlintegration.h>
-#include <qtmetamacros.h>
 
 class QfmFilesystemModel : public QAbstractListModel
 {
@@ -20,7 +18,7 @@ class QfmFilesystemModel : public QAbstractListModel
   enum Roles {
     fileName = Qt::DisplayRole,
     filePath = Qt::UserRole + 1,// including fileName
-    path, // exluding fileName
+    path, // excluding fileName
     url,
     iconSource,
     baseName,
@@ -30,6 +28,9 @@ class QfmFilesystemModel : public QAbstractListModel
     accessed,
     isDir,
     isSymlink,
+    symlinkTarget,
+    isReadable,
+    isExecutable,
   };
   Q_ENUM(Roles);
 
