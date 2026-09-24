@@ -114,7 +114,7 @@ void QfmFilesystemModel::fetchDir()
 
   m_entries.clear();
   //qWarning() << "!!! ITERATING:" << m_baseDir;
-  QDirIterator it(m_baseDir, QDir::Files | QDir::Dirs | QDir::Hidden);
+  QDirIterator it(m_baseDir, QDir::Files | QDir::Dirs | QDir::Hidden | QDir::NoDotAndDotDot);
   while (it.hasNext()) {
     const auto fi = it.nextFileInfo();
     //qWarning() << "!!! FOUND:" << it.fileName() << fi.canonicalFilePath();

@@ -33,6 +33,7 @@ qt_add_qml_module(${CMAKE_PROJECT_NAME}
       Main.qml
       qml/controls/QfmToolbar.qml
       qml/controls/QfmFileListHeaderButton.qml
+      qml/controls/TruncatedLabel.qml
       qml/components/QfmFileListPanel.qml
     SOURCES
       fileutils.h fileutils.cpp
@@ -46,6 +47,7 @@ qt_add_qml_module(${CMAKE_PROJECT_NAME}
       icons/folder_limited.svg
       icons/folder_link.svg
       icons/link.svg
+      icons/qfm.svg
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

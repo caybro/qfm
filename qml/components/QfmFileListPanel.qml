@@ -14,6 +14,8 @@ Frame {
     property alias sortRoleName: d.sortRoleName
     property alias ascendingSortOrder: d.ascendingSortOrder
 
+    property alias listview: listview
+
     leftPadding: 2
     rightPadding: 2
     topPadding: 2
@@ -54,7 +56,7 @@ Frame {
     }
 
     contentItem: ColumnLayout {
-        spacing: 0
+        spacing: 1
         RowLayout {
             Layout.fillWidth: true
             Layout.margins: 8
@@ -128,27 +130,6 @@ Frame {
                 height: listview.height
                 policy: ScrollBar.AsNeeded
             }
-
-            Keys.onPressed: function (event) {
-                if (event.key === Qt.Key_Home) {
-                    if (event.modifiers & Qt.ControlModifier) {
-                        root.folder = FileUtils.homePath()
-                        listview.currentIndex = 0
-                    } else {
-                        listview.currentIndex = 0
-                        listview.positionViewAtBeginning()
-                    }
-                } else if (event.key === Qt.Key_End) {
-                    listview.currentIndex = listview.count - 1
-                    listview.positionViewAtEnd()
-                } else if (event.key === Qt.Key_Backspace || event.key === Qt.Key_Left) {
-                    const parentDir = d.model.baseDir + "/.." // TODO add goUp() method to model
-                    if (parentDir.toString() !== "") {
-                        root.folder = parentDir
-                        listview.currentIndex = 0 // TODO position currentIndex on the previous parent folder
-                    }
-                }
-            }
         }
         Label {
             Layout.fillWidth: true
@@ -172,7 +153,8 @@ Frame {
         highlighted: ListView.view.activeFocus && ListView.isCurrentItem
 
         horizontalPadding: 8
-        verticalPadding: 4
+        topPadding: 2
+        bottomPadding: 2
 
         text: model.fileName
         icon.source: model.iconSource
@@ -189,16 +171,10 @@ Frame {
                 source: delegate.icon.source
                 color: filenameLabel.color
             }
-            Label { // TODO make a TruncatedLabel component
+            TruncatedLabel {
                 id: filenameLabel
                 Layout.fillWidth: true
                 text: delegate.text
-                elide: Text.ElideRight
-                ToolTip.text: delegate.text
-                ToolTip.visible: hhandler.hovered && filenameLabel.truncated
-                HoverHandler {
-                    id: hhandler
-                }
             }
             Label {
                 text: Qt.locale().formattedDataSize(delegate.model.size, 2, Locale.DataSizeTraditionalFormat)
