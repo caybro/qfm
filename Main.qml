@@ -1,11 +1,16 @@
+pragma ComponentBehavior: Bound
+
 import QtCore
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls.Basic
 import QtQuick.Controls.impl
 
-import Qt.labs.folderlistmodel
-//import QtQml.Models
+import Qt.labs.folderlistmodel // TODO remove with custom sort fields
+
+import QfmCore
+
+import SortFilterProxyModel
 
 ApplicationWindow {
     id: root
@@ -25,70 +30,7 @@ ApplicationWindow {
     font.family: "JetBrains Mono"
     font.pixelSize: 12
 
-    footer: ToolBar {
-        id: toolbar
-        RowLayout {
-            spacing: 0
-            anchors.fill: parent
-            ToolbarButton {
-                title: qsTr("Help")
-                shortcut: "F1"
-            }
-            ToolbarButton {
-                title: qsTr("Menu")
-                shortcut: "F2"
-            }
-            ToolbarButton {
-                title: qsTr("View")
-                shortcut: "F3"
-            }
-            ToolbarButton {
-                title: qsTr("Edit")
-                shortcut: "F4"
-            }
-            ToolbarButton {
-                title: qsTr("Copy")
-                shortcut: "F5"
-            }
-            ToolbarButton {
-                title: qsTr("Rename")
-                shortcut: "F6"
-            }
-            ToolbarButton {
-                title: qsTr("New")
-                shortcut: "F7"
-            }
-            ToolbarButton {
-                title: qsTr("Delete")
-                shortcut: "F8"
-            }
-            ToolbarButton {
-                title: qsTr("Symlink")
-                shortcut: "F9"
-            }
-            ToolbarButton {
-                title: qsTr("Quit")
-                shortcut: "F10"
-                onClicked: Qt.quit() // TODO confirm when an ongoing operation
-            }
-        }
-    }
-
-    component ToolbarButton: ToolButton {
-        id: toolbarButton
-        property string title
-        property alias shortcut: action.shortcut
-        horizontalPadding: 2
-
-        Layout.preferredWidth: toolbar.width/10
-        focusPolicy: Qt.NoFocus
-        font.pixelSize: 11
-        action: Action {
-            id: action
-            text: "%1 (%2)".arg(toolbarButton.title).arg(shortcut.toString())
-            onTriggered: toolbarButton.animateClick()
-        }
-    }
+    footer: QfmToolbar {}
 
     SplitView {
         id: splitview
@@ -111,7 +53,7 @@ ApplicationWindow {
 
     component FileListPanel: Frame {
         id: panel
-        property url folder: FileUtils.homePathUrl()
+        property string folder: FileUtils.homePath()
 
         leftPadding: 2
         rightPadding: 2
@@ -120,10 +62,21 @@ ApplicationWindow {
 
         QtObject {
             id: d
-            readonly property FolderListModel model: FolderListModel { // TODO custom model w/o 'dot', with permissions etc.
-                folder: panel.folder
-                showDirsFirst: sortField === FolderListModel.Name
-                showDotAndDotDot: false
+            readonly property QfmFilesystemModel model: QfmFilesystemModel {
+                baseDir: panel.folder
+            }
+            readonly property SortFilterProxyModel proxyModel: SortFilterProxyModel {
+                sourceModel: d.model
+                sorters: [
+                    RoleSorter {
+                        roleName: "isDir"
+                        sortOrder: Qt.DescendingOrder
+                    },
+                    StringSorter {
+                        roleName: "fileName"
+                        caseSensitivity: Qt.CaseSensitive
+                    }
+                ]
             }
         }
 
@@ -138,7 +91,7 @@ ApplicationWindow {
                     elide: Text.ElideMiddle
                     textFormat: Text.StyledText
                     text: {
-                        const path = FileUtils.urlToString(d.model.folder)
+                        const path = FileUtils.urlToString(panel.folder)
                         const parts = path.split(FileUtils.pathSeparator())
                         const count = parts.length
                         let accumulatedLink = ""
@@ -146,13 +99,13 @@ ApplicationWindow {
                         for (let i = 0; i < count; i++) {
                             const part = parts[i]
                             accumulatedLink = accumulatedLink.concat(part, FileUtils.pathSeparator())
-                            result.push("<a href='%1'>%2</a>".arg(FileUtils.pathToUrl(accumulatedLink)).arg(part))
+                            result.push("<a href='%1'>%2</a>".arg(accumulatedLink).arg(part))
                         }
 
                         return result.join('&thinsp;%1&thinsp;').arg(FileUtils.pathSeparator())
                     }
                     font.weight: Font.Medium
-                    onLinkActivated: link => d.model.folder = link
+                    onLinkActivated: link => panel.folder = link
                     HoverHandler {
                         cursorShape: !!parent.hoveredLink ? Qt.PointingHandCursor : undefined
                     }
@@ -161,7 +114,7 @@ ApplicationWindow {
                     Layout.alignment: Qt.AlignRight
                     verticalAlignment: Text.AlignVCenter
                     textFormat: Text.StyledText
-                    text: "&sum;&thinsp;%L1".arg(d.model.count - (d.model.showDotAndDotDot ? 2 : 0))
+                    text: "&sum;&thinsp;%L1".arg(d.proxyModel.count)
                 }
             }
             RowLayout {
@@ -202,25 +155,12 @@ ApplicationWindow {
                 id: listview
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                // model: SortFilterProxyModel { // FIXME Qt variant doesn't work here
-                //     sourceModel: d.model
-                //     filters: [
-                //         ValueFilter {
-                //             roleName: "fileName"
-                //             value: "."
-                //             inverted: true
-                //         }
-                //     ]
-                // }
-                model: d.model
+                model: d.proxyModel
                 keyNavigationEnabled: true
                 focus: true
                 clip: true
 
                 delegate: FileListItemDelegate {
-                    // FIXME use SFPM instead
-                    visible: model.fileName !== "."
-                    height: visible ? implicitHeight : 0
                 }
 
                 ScrollBar.vertical: ScrollBar {
@@ -234,7 +174,7 @@ ApplicationWindow {
                 Keys.onPressed: function (event) {
                     if (event.key === Qt.Key_Home) {
                         if (event.modifiers & Qt.ControlModifier) {
-                            d.model.folder = FileUtils.homePathUrl()
+                            panel.folder = FileUtils.homePath()
                             listview.currentIndex = 0
                         } else {
                             listview.currentIndex = 0
@@ -243,21 +183,22 @@ ApplicationWindow {
                     } else if (event.key === Qt.Key_End) {
                         listview.currentIndex = listview.count - 1
                         listview.positionViewAtEnd()
-                    } else if (event.key === Qt.Key_Backspace) {
-                        const parentDir = d.model.parentFolder
+                    } else if (event.key === Qt.Key_Backspace || event.key === Qt.Key_Left) {
+                        const parentDir = d.model.baseDir + "/.." // TODO add goUp() method to model
                         if (parentDir.toString() !== "") {
-                            d.model.folder = parentDir
-                            listview.currentIndex = 0
+                            panel.folder = parentDir
+                            listview.currentIndex = 0 // TODO position currentIndex on the previous parent folder
                         }
                     }
                 }
             }
             Label {
                 Layout.fillWidth: true
-                Layout.margins: 8
                 verticalAlignment: Text.AlignVCenter
                 elide: Text.ElideRight
-                text: d.model.get(listview.currentIndex, "fileName") ?? ""
+                Layout.margins: 8
+                text: (listview.currentItem?.isSymlink ? "→ " : "") + // TODO add symlink target
+                      listview.currentItem?.text ?? qsTr("N/A") // not ready or empty dir
                 font.weight: Font.Medium
             }
         }
@@ -281,6 +222,8 @@ ApplicationWindow {
         required property var model
         required property int index
 
+        readonly property bool isSymlink: model.isSymlink
+
         width: ListView.view.width
         highlighted: ListView.view.activeFocus && ListView.isCurrentItem
 
@@ -288,7 +231,7 @@ ApplicationWindow {
         verticalPadding: 4
 
         text: model.fileName
-        icon.source: model.fileIsDir ? "icons/folder.svg" : "icons/file.svg"
+        icon.source: model.iconSource
         icon.width: 20
         icon.height: 20
 
@@ -297,8 +240,8 @@ ApplicationWindow {
         contentItem: RowLayout {
             spacing: delegate.spacing
             ColorImage {
-                width: delegate.icon.width
-                height: delegate.icon.height
+                Layout.preferredWidth: delegate.icon.width
+                Layout.preferredHeight: delegate.icon.height
                 source: delegate.icon.source
                 color: filenameLabel.color
             }
@@ -314,10 +257,10 @@ ApplicationWindow {
                 }
             }
             Label {
-                text: Qt.locale().formattedDataSize(model.fileSize, 2, Locale.DataSizeTraditionalFormat)
+                text: Qt.locale().formattedDataSize(delegate.model.size, 2, Locale.DataSizeTraditionalFormat)
             }
             Label {
-                text: model.fileModified.toLocaleString(Qt.locale(), Locale.ShortFormat)
+                text: delegate.model.modified.toLocaleString(Qt.locale(), Locale.ShortFormat)
             }
         }
 
@@ -328,13 +271,13 @@ ApplicationWindow {
 
         onClicked: {
             ListView.view.forceActiveFocus()
-            if (model.fileIsDir) {
-                d.model.folder = model.fileUrl
+            if (model.isDir) {
+                panel.folder = model.filePath
                 ListView.view.currentIndex = 0
             }
             else {
                 ListView.view.currentIndex = index
-                Qt.openUrlExternally(model.fileUrl)
+                Qt.openUrlExternally(model.url)
             }
         }
     }

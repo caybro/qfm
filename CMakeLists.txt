@@ -15,6 +15,14 @@ qt_standard_project_setup(
 
 add_definitions(-DAPP_VERSION="${CMAKE_PROJECT_VERSION}")
 
+include(FetchContent)
+FetchContent_Declare(
+  SortFilterProxyModel
+  GIT_REPOSITORY https://github.com/status-im/SortFilterProxyModel.git
+  GIT_TAG 6477b1e465b02f18007900125864cdfa812ba8ad
+)
+FetchContent_MakeAvailable(SortFilterProxyModel)
+
 qt_add_executable(${CMAKE_PROJECT_NAME}
     main.cpp
 )
@@ -23,13 +31,19 @@ qt_add_qml_module(${CMAKE_PROJECT_NAME}
     URI QfmCore
     QML_FILES
       Main.qml
+      qml/controls/QfmToolbar.qml
     SOURCES
       fileutils.h fileutils.cpp
+      qfmfilesystemmodel.h qfmfilesystemmodel.cpp
     RESOURCES
       icons/create_new_folder.svg
       icons/file.svg
+      icons/file_link.svg
       icons/folder.svg
+      icons/folder_hidden.svg
       icons/folder_limited.svg
+      icons/folder_link.svg
+      icons/link.svg
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -49,6 +63,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
         Qt6::Gui
         Qt6::Quick
         Qt6::QuickControls2
+        SortFilterProxyModel
 )
 
 qt_add_translations(${CMAKE_PROJECT_NAME}
