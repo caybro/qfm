@@ -9,15 +9,19 @@ class FileUtils : public QObject
   Q_OBJECT
   QML_ELEMENT
   QML_SINGLETON
+
+  Q_PROPERTY(QString homePath READ homePath FINAL CONSTANT)
+  Q_PROPERTY(QString rootPath READ rootPath FINAL CONSTANT)
+  Q_PROPERTY(QString pathSeparator READ pathSeparator FINAL CONSTANT)
+
  public:
   explicit FileUtils(QObject *parent = nullptr);
 
-  // TODO make these props
-  Q_INVOKABLE QString homePath() const;
-  Q_INVOKABLE QUrl homePathUrl() const;
-  Q_INVOKABLE QString rootPath() const;
-  Q_INVOKABLE QString pathSeparator() const;
-
   Q_INVOKABLE QString urlToString(const QUrl& url) const;
   Q_INVOKABLE QUrl pathToUrl(const QString& path) const;
+
+ private:
+  QString homePath() const;
+  QString rootPath() const;
+  QString pathSeparator() const;
 };

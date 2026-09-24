@@ -11,11 +11,6 @@ QString FileUtils::homePath() const
   return QDir::homePath();
 }
 
-QUrl FileUtils::homePathUrl() const
-{
-  return QUrl::fromLocalFile(homePath());
-}
-
 QString FileUtils::rootPath() const
 {
   return QDir::rootPath();

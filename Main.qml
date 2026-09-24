@@ -39,7 +39,7 @@ ApplicationWindow {
     function handleShortcut(event, panel) {
         if (event.key === Qt.Key_Home) {
             if (event.modifiers & Qt.ControlModifier) {
-                panel.folder = FileUtils.homePath()
+                panel.folder = FileUtils.homePath
                 panel.listview.currentIndex = 0
             } else {
                 panel.listview.currentIndex = 0
@@ -55,7 +55,7 @@ ApplicationWindow {
                 panel.listview.currentIndex = 0 // TODO position currentIndex on the previous parent folder
             }
         } else if (event.key === Qt.Key_Slash && (event.modifiers & Qt.ControlModifier)) {
-            panel.folder = FileUtils.rootPath()
+            panel.folder = FileUtils.rootPath
             panel.listview.currentIndex = 0
         }
     }

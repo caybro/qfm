@@ -33,8 +33,6 @@ class QfmFilesystemModel : public QAbstractListModel
   };
   Q_ENUM(Roles);
 
-  Q_INVOKABLE QVariant get(int row, QfmFilesystemModel::Roles role) const;
-
  signals:
   void baseDirChanged();
   void loadingChanged();

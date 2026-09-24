@@ -27,11 +27,6 @@ QfmFilesystemModel::QfmFilesystemModel(QObject *parent)
   connect(this, &QfmFilesystemModel::baseDirChanged, this, &QfmFilesystemModel::fetchDir);
 }
 
-QVariant QfmFilesystemModel::get(int row, Roles role) const
-{
-  return index(row).data(role);
-}
-
 int QfmFilesystemModel::rowCount(const QModelIndex &parent) const
 {
   return m_entries.size();

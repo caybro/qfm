@@ -10,7 +10,7 @@ import SortFilterProxyModel
 Frame {
     id: root
 
-    property string folder: FileUtils.homePath()
+    property string folder: FileUtils.homePath
     property alias sortRoleName: d.sortRoleName
     property alias ascendingSortOrder: d.ascendingSortOrder
 
@@ -67,17 +67,17 @@ Frame {
                 textFormat: Text.StyledText
                 text: {
                     const path = FileUtils.urlToString(root.folder)
-                    const parts = path.split(FileUtils.pathSeparator())
+                    const parts = path.split(FileUtils.pathSeparator)
                     const count = parts.length
                     let accumulatedLink = ""
                     let result = []
                     for (let i = 0; i < count; i++) {
                         const part = parts[i]
-                        accumulatedLink = accumulatedLink.concat(part, FileUtils.pathSeparator())
+                        accumulatedLink = accumulatedLink.concat(part, FileUtils.pathSeparator)
                         result.push("<a href='%1'>%2</a>".arg(accumulatedLink).arg(part))
                     }
 
-                    return result.join('&thinsp;%1&thinsp;').arg(FileUtils.pathSeparator())
+                    return result.join('&thinsp;%1&thinsp;').arg(FileUtils.pathSeparator)
                 }
                 font.weight: Font.Medium
                 onLinkActivated: link => root.folder = link
