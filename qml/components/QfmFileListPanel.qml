@@ -259,7 +259,7 @@ Pane {
                 font.weight: delegate.model.isDir ? Font.Bold : Font.Normal
             }
             Label {
-                text: Qt.locale().formattedDataSize(delegate.model.size, 0, Locale.DataSizeTraditionalFormat)
+                text: Qt.locale().formattedDataSize(delegate.model.size, 2, Locale.DataSizeTraditionalFormat)
             }
             Label {
                 text: delegate.model.modified.toLocaleString(Qt.locale(), Locale.ShortFormat) // TODO find a more suitable/compact format

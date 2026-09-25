@@ -30,3 +30,17 @@ QUrl FileUtils::pathToUrl(const QString &path) const
 {
   return QUrl::fromLocalFile(path);
 }
+
+QString FileUtils::parentDir(const QString &path) const
+{
+  if (path.isEmpty())
+    return rootPath();
+
+  QDir dir(path);
+  if (!dir.exists())
+    return rootPath();
+  if (!dir.cdUp())
+    return rootPath();
+
+  return dir.absolutePath();
+}

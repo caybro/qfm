@@ -19,6 +19,7 @@ class FileUtils : public QObject
 
   Q_INVOKABLE QString urlToString(const QUrl& url) const;
   Q_INVOKABLE QUrl pathToUrl(const QString& path) const;
+  Q_INVOKABLE QString parentDir(const QString& path) const;
 
  private:
   QString homePath() const;

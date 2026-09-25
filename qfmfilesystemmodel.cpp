@@ -78,9 +78,9 @@ QVariant QfmFilesystemModel::data(const QModelIndex &index, int role) const
   case fileName:
     return entry.fileName();
   case filePath:
-    return entry.canonicalFilePath();
+    return entry.absoluteFilePath();
   case path:
-    return entry.canonicalPath();
+    return entry.absolutePath();
   case url:
     return QUrl::fromLocalFile(entry.canonicalFilePath());
   case iconSource:

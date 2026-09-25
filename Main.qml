@@ -54,7 +54,7 @@ ApplicationWindow {
             panel.listview.currentIndex = panel.listview.count - 1
             panel.listview.positionViewAtEnd()
         } else if (event.key === Qt.Key_Backspace || event.key === Qt.Key_Left || event.matches(StandardKey.Back)) {
-            const parentDir = panel.folder + "/.." // TODO add goUp() method to model
+            const parentDir = FileUtils.parentDir(panel.folder)
             if (parentDir.toString() !== "") {
                 panel.folder = parentDir
                 panel.listview.currentIndex = 0 // TODO position currentIndex on the previous parent folder
