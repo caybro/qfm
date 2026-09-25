@@ -9,5 +9,6 @@ Label {
 
     HoverHandler {
         id: hhandler
+        cursorShape: !!parent.hoveredLink ? Qt.PointingHandCursor : undefined
     }
 }

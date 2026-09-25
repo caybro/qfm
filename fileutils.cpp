@@ -23,7 +23,7 @@ QString FileUtils::pathSeparator() const
 
 QString FileUtils::urlToString(const QUrl &url) const
 {
-  return QDir::toNativeSeparators(url.toString(QUrl::PreferLocalFile | QUrl::NormalizePathSegments));
+  return QDir::toNativeSeparators(url.toString(QUrl::PreferLocalFile | QUrl::NormalizePathSegments | QUrl::StripTrailingSlash));
 }
 
 QUrl FileUtils::pathToUrl(const QString &path) const

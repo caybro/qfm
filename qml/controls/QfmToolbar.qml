@@ -7,6 +7,8 @@ import QfmCore
 ToolBar {
     id: root
 
+    background: null
+
     RowLayout {
         spacing: 0
         anchors.fill: parent
@@ -60,7 +62,7 @@ ToolBar {
         horizontalPadding: 2
 
         Layout.preferredWidth: root.width/10
-        font.pixelSize: 11
+        Layout.fillHeight: true
         action: Action {
             id: action
             text: "%1 (%2)".arg(toolbarButton.title).arg(shortcut.toString())

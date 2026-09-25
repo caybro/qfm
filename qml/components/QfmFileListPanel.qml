@@ -7,7 +7,7 @@ import QfmCore
 
 import SortFilterProxyModel
 
-Frame {
+Pane {
     id: root
 
     property string folder: FileUtils.homePath
@@ -65,34 +65,15 @@ Frame {
     }
 
     contentItem: ColumnLayout {
-        spacing: 1
+        spacing: 0
         RowLayout {
             Layout.fillWidth: true
             Layout.margins: 8
 
-            Label { // TODO use TruncatedLabel, turn it into a BreadcrumbLabel component
+            BreadcrumbLabel {
                 Layout.fillWidth: true
-                elide: Text.ElideMiddle
-                textFormat: Text.StyledText
-                text: {
-                    const path = FileUtils.urlToString(root.folder)
-                    const parts = path.split(FileUtils.pathSeparator)
-                    const count = parts.length
-                    let accumulatedLink = ""
-                    let result = []
-                    for (let i = 0; i < count; i++) {
-                        const part = parts[i]
-                        accumulatedLink = accumulatedLink.concat(part, FileUtils.pathSeparator)
-                        result.push("<a href='%1'>%2</a>".arg(accumulatedLink).arg(part))
-                    }
-
-                    return result.join('&thinsp;%1&thinsp;').arg(FileUtils.pathSeparator)
-                }
-                font.weight: Font.Medium
+                folder: root.folder
                 onLinkActivated: link => root.folder = link
-                HoverHandler {
-                    cursorShape: !!parent.hoveredLink ? Qt.PointingHandCursor : undefined
-                }
             }
             Label {
                 textFormat: Text.StyledText
@@ -105,6 +86,7 @@ Frame {
                 onToggled: d.showHiddenFiles = checked
             }
         }
+        Separator {}
         RowLayout {
             Layout.fillWidth: true
             spacing: 0
@@ -124,6 +106,7 @@ Frame {
                 sortRoleName: "modified"
             }
         }
+        Separator {}
         ListView {
             id: listview
             Layout.fillWidth: true
@@ -143,6 +126,7 @@ Frame {
                 policy: ScrollBar.AsNeeded
             }
         }
+        Separator {}
         RowLayout {
             Layout.fillWidth: true
             Layout.margins: 8
@@ -203,6 +187,7 @@ Frame {
                 id: filenameLabel
                 Layout.fillWidth: true
                 text: delegate.text
+                font.weight: delegate.model.isDir ? Font.Bold : Font.Normal
             }
             Label {
                 text: Qt.locale().formattedDataSize(delegate.model.size, 0, Locale.DataSizeTraditionalFormat)
@@ -242,5 +227,11 @@ Frame {
             checked ? d.ascendingSortOrder = !d.ascendingSortOrder
                     : d.sortRoleName = sortRoleName
         }
+    }
+
+    component Separator: Rectangle {
+        Layout.fillWidth: true
+        Layout.preferredHeight: 1
+        color: root.palette.button
     }
 }
