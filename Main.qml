@@ -31,9 +31,12 @@ ApplicationWindow {
         property alias leftPanelFolder: leftPanel.folder
         property alias leftPanelSortRoleName: leftPanel.sortRoleName
         property alias leftPanelAscendingSortOrder: leftPanel.ascendingSortOrder
+        property alias leftPanelShowHiddenFiles: leftPanel.showHiddenFiles
+
         property alias rightPanelFolder: rightPanel.folder
         property alias rightPanelSortRoleName: rightPanel.sortRoleName
         property alias rightPanelAscendingSortOrder: rightPanel.ascendingSortOrder
+        property alias rightPanelShowHiddenFiles: rightPanel.showHiddenFiles
     }
 
     function handleShortcut(event, panel) {

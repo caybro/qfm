@@ -2,6 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
+import QfmCore
+
 ToolBar {
     id: root
 
@@ -51,14 +53,13 @@ ToolBar {
         }
     }
 
-    component ToolbarButton: ToolButton {
+    component ToolbarButton: QfmToolButton {
         id: toolbarButton
         property string title
         property alias shortcut: action.shortcut
         horizontalPadding: 2
 
         Layout.preferredWidth: root.width/10
-        focusPolicy: Qt.NoFocus
         font.pixelSize: 11
         action: Action {
             id: action

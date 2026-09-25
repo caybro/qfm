@@ -13,6 +13,7 @@ Frame {
     property string folder: FileUtils.homePath
     property alias sortRoleName: d.sortRoleName
     property alias ascendingSortOrder: d.ascendingSortOrder
+    property alias showHiddenFiles: d.showHiddenFiles
 
     property alias listview: listview
 
@@ -26,6 +27,7 @@ Frame {
 
         property string sortRoleName: "fileName"
         property bool ascendingSortOrder: true
+        property bool showHiddenFiles: true
 
         readonly property QfmFilesystemModel model: QfmFilesystemModel {
             baseDir: root.folder
@@ -52,6 +54,13 @@ Frame {
                     enabled: d.sortRoleName !== "fileName"
                 }
             ]
+            filters: [
+                ValueFilter {
+                    roleName: "isHidden"
+                    value: false
+                    enabled: !d.showHiddenFiles
+                }
+            ]
         }
     }
 
@@ -63,7 +72,6 @@ Frame {
 
             Label { // TODO use TruncatedLabel, turn it into a BreadcrumbLabel component
                 Layout.fillWidth: true
-                verticalAlignment: Text.AlignVCenter
                 elide: Text.ElideMiddle
                 textFormat: Text.StyledText
                 text: {
@@ -87,10 +95,14 @@ Frame {
                 }
             }
             Label {
-                Layout.alignment: Qt.AlignRight
-                verticalAlignment: Text.AlignVCenter
                 textFormat: Text.StyledText
                 text: "&sum;&thinsp;%L1".arg(d.proxyModel.count)
+            }
+            QfmToolButton {
+                icon.source: "../../icons/visibility_off.svg"
+                checkable: true
+                checked: d.showHiddenFiles
+                onToggled: d.showHiddenFiles = checked
             }
         }
         RowLayout {
@@ -156,7 +168,7 @@ Frame {
         }
     }
 
-    component FileListItemDelegate: ItemDelegate {
+    component FileListItemDelegate: ItemDelegate { // TODO separate component
         id: delegate
         required property var model
         required property int index
@@ -222,13 +234,13 @@ Frame {
     }
 
     component HeaderButton: QfmFileListHeaderButton {
-        isCurrentSortField: d.sortRoleName === sortRoleName
-        isDown: isCurrentSortField && d.ascendingSortOrder
-        isUp: isCurrentSortField && !d.ascendingSortOrder
+        checked: d.sortRoleName === sortRoleName
+        isDown: checked && d.ascendingSortOrder
+        isUp: checked && !d.ascendingSortOrder
         onClicked: {
             listview.forceActiveFocus()
-            isCurrentSortField ? d.ascendingSortOrder = !d.ascendingSortOrder
-                               : d.sortRoleName = sortRoleName
+            checked ? d.ascendingSortOrder = !d.ascendingSortOrder
+                    : d.sortRoleName = sortRoleName
         }
     }
 }

@@ -22,6 +22,7 @@ constexpr auto kRoleIsSymlink = "isSymlink";
 constexpr auto kRoleSymlinkTarget = "symlinkTarget";
 constexpr auto kRoleIsReadable = "isReadable";
 constexpr auto kRoleIsExecutable = "isExecutable";
+constexpr auto kRoleIsHidden = "isHidden";
 constexpr auto kRolePermissionsString = "permissionsString";
 
 auto entryIcon(const QFileInfo& entry) {
@@ -105,6 +106,8 @@ QVariant QfmFilesystemModel::data(const QModelIndex &index, int role) const
     return entry.isReadable();
   case isExecutable:
     return entry.isExecutable();
+  case isHidden:
+    return entry.isHidden();
   case permissionsString:
     return permissionsToString(entry.permissions());
   }
@@ -130,6 +133,7 @@ QHash<int, QByteArray> QfmFilesystemModel::roleNames() const
       {QfmFilesystemModel::Roles::symlinkTarget, kRoleSymlinkTarget},
       {QfmFilesystemModel::Roles::isReadable, kRoleIsReadable},
       {QfmFilesystemModel::Roles::isExecutable, kRoleIsExecutable},
+      {QfmFilesystemModel::Roles::isHidden, kRoleIsHidden},
       {QfmFilesystemModel::Roles::permissionsString, kRolePermissionsString},
   };
   return roles;
