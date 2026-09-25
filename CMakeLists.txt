@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Quick QuickControls2 LinguistTools)
+find_package(Qt6 6.11 REQUIRED COMPONENTS Core Gui Quick QuickControls2 LinguistTools)
 
 qt_standard_project_setup(
     REQUIRES 6.11
@@ -14,6 +14,8 @@ qt_standard_project_setup(
 )
 
 add_definitions(-DAPP_VERSION="${CMAKE_PROJECT_VERSION}")
+
+set(QT_VERSION_MAJOR 6)
 
 include(FetchContent)
 FetchContent_Declare(
