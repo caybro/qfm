@@ -134,11 +134,35 @@ Pane {
                 policy: ScrollBar.AsNeeded
             }
 
+            function pageStep() {
+                const firstVisibleIndex = indexAt(0, contentY + 1)
+                const lastVisibleIndex = indexAt(0, contentY + height - 1)
+                if (firstVisibleIndex >= 0 && lastVisibleIndex > firstVisibleIndex)
+                    return lastVisibleIndex - firstVisibleIndex
+
+                return Math.max(1, Math.floor(height / Math.max(currentItem?.height ?? 1, 1)) - 1)
+            }
+
+            function movePage(direction) {
+                if (count === 0)
+                    return
+
+                const baseIndex = currentIndex >= 0 ? currentIndex : direction > 0 ? 0 : count - 1
+                currentIndex = Math.max(0, Math.min(count - 1, baseIndex + direction * pageStep()))
+                positionViewAtIndex(currentIndex, direction > 0 ? ListView.Beginning : ListView.End)
+            }
+
             Keys.onPressed: function(event) {
                 if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return) {
                     event.accepted = true
                     if (!!currentItem)
                         currentItem.activate()
+                } else if (event.key === Qt.Key_PageUp) {
+                    event.accepted = true
+                    movePage(-1)
+                } else if (event.key === Qt.Key_PageDown) {
+                    event.accepted = true
+                    movePage(1)
                 } else if (((event.modifiers & Qt.ControlModifier) || (event.modifiers & Qt.AltModifier)) && event.key === Qt.Key_S) { // Ctrl+S or Alt+S
                     event.accepted = true
                     if (!typeAheadArea.visible)
