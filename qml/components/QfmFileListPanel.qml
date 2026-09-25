@@ -89,6 +89,8 @@ Pane {
                 checkable: true
                 checked: d.showHiddenFiles
                 onToggled: d.showHiddenFiles = checked
+                ToolTip.visible: hovered
+                ToolTip.text: qsTr("Show hidden files")
             }
         }
         Separator {}
@@ -120,6 +122,7 @@ Pane {
             keyNavigationEnabled: true
             focus: true
             clip: true
+            snapMode: ListView.SnapOneItem
 
             delegate: FileListItemDelegate {}
 
@@ -132,13 +135,11 @@ Pane {
             }
 
             Keys.onPressed: function(event) {
-                /*if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return) {
-                    console.warn("!!! ENTER PRESSED")
-                    event.accept = true
+                if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return) {
+                    event.accepted = true
                     if (!!currentItem)
                         currentItem.activate()
-                }*/
-                if (((event.modifiers & Qt.ControlModifier) || (event.modifiers & Qt.AltModifier)) && event.key === Qt.Key_S) { // Ctrl+S or Alt+S
+                } else if (((event.modifiers & Qt.ControlModifier) || (event.modifiers & Qt.AltModifier)) && event.key === Qt.Key_S) { // Ctrl+S or Alt+S
                     event.accepted = true
                     if (!typeAheadArea.visible)
                         typeAheadArea.open()
@@ -175,13 +176,12 @@ Pane {
                 font.weight: Font.Medium
             }
         }
-        TextField {
+        TextInput {
             Layout.fillWidth: true
             Layout.margins: 8
 
             id: typeAheadArea
             visible: false
-            placeholderText: "/"
             onAccepted: close()
 
             Keys.onEscapePressed: close()
@@ -211,8 +211,8 @@ Pane {
                 anchors.right: parent.right
                 anchors.rightMargin: parent.rightPadding
                 anchors.verticalCenter: parent.verticalCenter
-                checked: true
                 checkable: true
+                checked: true
                 icon.source: checked ? "qrc:/qt/qml/QfmCore/icons/match_case.svg" : "qrc:/qt/qml/QfmCore/icons/match_case_off.svg"
 
                 ToolTip.visible: hovered
@@ -266,16 +266,19 @@ Pane {
             }
         }
 
-        function selectItem() {
+        function select() {
             ListView.view.forceActiveFocus()
             ListView.view.currentIndex = index
         }
 
-        function activateItem() {
+        function activate() {
             ListView.view.forceActiveFocus()
 
             if (!model.isReadable)
                 return
+
+            if (typeAheadArea.visible)
+                typeAheadArea.close()
 
             if (model.isDir) { // DIR
                 root.folder = model.filePath
@@ -286,9 +289,8 @@ Pane {
             }
         }
 
-        onClicked: activateItem()
-        //onClicked: selectItem()
-        //onDoubleClicked: activateItem()
+        onClicked: select()
+        onDoubleClicked: activate()
     }
 
     component HeaderButton: QfmFileListHeaderButton {

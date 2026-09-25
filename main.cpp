@@ -6,6 +6,8 @@ using namespace Qt::Literals::StringLiterals;
 
 int main(int argc, char *argv[])
 {
+  QGuiApplication::setDesktopSettingsAware(false); // ignore single click to activate
+
   QGuiApplication app(argc, argv);
   QGuiApplication::setOrganizationName("caybro"_L1);
   QGuiApplication::setApplicationName("qfm"_L1);
