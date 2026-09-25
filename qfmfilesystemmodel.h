@@ -31,6 +31,7 @@ class QfmFilesystemModel : public QAbstractListModel
     symlinkTarget,
     isReadable,
     isExecutable,
+    permissionsString,
   };
   Q_ENUM(Roles);
 

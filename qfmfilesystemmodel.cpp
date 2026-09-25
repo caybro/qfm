@@ -22,6 +22,7 @@ constexpr auto kRoleIsSymlink = "isSymlink";
 constexpr auto kRoleSymlinkTarget = "symlinkTarget";
 constexpr auto kRoleIsReadable = "isReadable";
 constexpr auto kRoleIsExecutable = "isExecutable";
+constexpr auto kRolePermissionsString = "permissionsString";
 
 auto entryIcon(const QFileInfo& entry) {
   if (entry.isDir()) {
@@ -42,6 +43,14 @@ auto entryIcon(const QFileInfo& entry) {
 
   return "/qt/qml/QfmCore/icons/file_other.svg"_L1;
 }
+
+constexpr auto permissionsToString = [](QFile::Permissions perms) {
+  return QLatin1StringView("u[%1%2%3] g[%4%5%6] a[%7%8%9]")
+      .arg(perms.testFlag(QFileDevice::ReadUser) ? "r" : "_", perms.testFlag(QFileDevice::WriteUser) ? "w" : "_", perms.testFlag(QFileDevice::ExeUser) ? "x" : "_",
+           perms.testFlag(QFileDevice::ReadGroup) ? "r" : "_", perms.testFlag(QFileDevice::WriteGroup) ? "w" : "_", perms.testFlag(QFileDevice::ExeGroup) ? "x" : "_",
+           perms.testFlag(QFileDevice::ReadOther) ? "r" : "_", perms.testFlag(QFileDevice::WriteOther) ? "w" : "_", perms.testFlag(QFileDevice::ExeOther) ? "x" : "_"
+           );
+};
 }
 
 QfmFilesystemModel::QfmFilesystemModel(QObject *parent)
@@ -96,6 +105,8 @@ QVariant QfmFilesystemModel::data(const QModelIndex &index, int role) const
     return entry.isReadable();
   case isExecutable:
     return entry.isExecutable();
+  case permissionsString:
+    return permissionsToString(entry.permissions());
   }
 
   return {};
@@ -119,6 +130,7 @@ QHash<int, QByteArray> QfmFilesystemModel::roleNames() const
       {QfmFilesystemModel::Roles::symlinkTarget, kRoleSymlinkTarget},
       {QfmFilesystemModel::Roles::isReadable, kRoleIsReadable},
       {QfmFilesystemModel::Roles::isExecutable, kRoleIsExecutable},
+      {QfmFilesystemModel::Roles::permissionsString, kRolePermissionsString},
   };
   return roles;
 }

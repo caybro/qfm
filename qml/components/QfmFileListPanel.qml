@@ -60,6 +60,7 @@ Frame {
         RowLayout {
             Layout.fillWidth: true
             Layout.margins: 8
+
             Label { // TODO use TruncatedLabel, turn it into a BreadcrumbLabel component
                 Layout.fillWidth: true
                 verticalAlignment: Text.AlignVCenter
@@ -120,8 +121,7 @@ Frame {
             focus: true
             clip: true
 
-            delegate: FileListItemDelegate {
-            }
+            delegate: FileListItemDelegate {}
 
             ScrollBar.vertical: ScrollBar {
                 parent: root
@@ -131,19 +131,28 @@ Frame {
                 policy: ScrollBar.AsNeeded
             }
         }
-        Label {
+        RowLayout {
             Layout.fillWidth: true
-            verticalAlignment: Text.AlignVCenter
-            elide: Text.ElideRight
             Layout.margins: 8
-            text: {
-                if (!listview.currentItem)
-                    return qsTr("N/A") // not ready or empty dir
-                return listview.currentItem.isSymlink ? "%1 → %2".arg(listview.currentItem.text).arg(listview.currentItem.symlinkTarget)
-                                                      : listview.currentItem.text
-            }
+            Label {
+                Layout.fillWidth: true
+                verticalAlignment: Text.AlignVCenter
+                elide: Text.ElideRight
 
-            font.weight: Font.Medium
+                text: {
+                    if (!listview.currentItem)
+                        return qsTr("N/A") // not ready or empty dir
+                    return listview.currentItem.isSymlink ? "%1 → %2".arg(listview.currentItem.text).arg(listview.currentItem.symlinkTarget)
+                                                          : listview.currentItem.text
+                }
+
+                font.weight: Font.Medium
+            }
+            Label {
+                verticalAlignment: Text.AlignVCenter
+                text: listview.currentItem?.permissionsString ?? "???"
+                font.weight: Font.Medium
+            }
         }
     }
 
@@ -154,6 +163,7 @@ Frame {
 
         readonly property bool isSymlink: model.isSymlink
         readonly property string symlinkTarget: model.symlinkTarget
+        readonly property string permissionsString: model.permissionsString
 
         width: ListView.view.width
         highlighted: ListView.view.activeFocus && ListView.isCurrentItem
@@ -183,10 +193,10 @@ Frame {
                 text: delegate.text
             }
             Label {
-                text: Qt.locale().formattedDataSize(delegate.model.size, 2, Locale.DataSizeTraditionalFormat)
+                text: Qt.locale().formattedDataSize(delegate.model.size, 0, Locale.DataSizeTraditionalFormat)
             }
             Label {
-                text: delegate.model.modified.toLocaleString(Qt.locale(), Locale.ShortFormat)
+                text: delegate.model.modified.toLocaleString(Qt.locale(), Locale.ShortFormat) // TODO find a more suitable/compact format
             }
         }
 
