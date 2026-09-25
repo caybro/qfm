@@ -12,6 +12,8 @@ ApplicationWindow {
     minimumHeight: 200
     visible: true
 
+    title: FileUtils.urlToString(leftPanel.focus ? leftPanel.folder : rightPanel.folder)
+
     font.family: "JetBrains Mono"
     font.pixelSize: 12
 

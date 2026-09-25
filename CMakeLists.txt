@@ -53,6 +53,8 @@ qt_add_qml_module(${CMAKE_PROJECT_NAME}
       icons/link.svg
       icons/qfm.svg
       icons/visibility_off.svg
+      icons/match_case.svg
+      icons/match_case_off.svg
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

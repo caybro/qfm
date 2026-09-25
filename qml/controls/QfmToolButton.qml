@@ -13,4 +13,8 @@ ToolButton {
         color: parent.down || parent.checked || parent.highlighted ? Qt.alpha(palette.highlight, 0.3)
                                                                    : parent.hovered ? Qt.alpha(palette.highlight, 0.15) : "transparent"
     }
+
+    HoverHandler {
+        cursorShape: hovered ? Qt.PointingHandCursor : undefined
+    }
 }

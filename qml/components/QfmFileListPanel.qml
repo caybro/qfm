@@ -29,13 +29,12 @@ Pane {
         property bool ascendingSortOrder: true
         property bool showHiddenFiles: true
 
-        readonly property QfmFilesystemModel model: QfmFilesystemModel {
-            baseDir: root.folder
-        }
         readonly property SortFilterProxyModel proxyModel: SortFilterProxyModel {
             id: proxyModel
 
-            sourceModel: d.model
+            sourceModel: QfmFilesystemModel {
+                baseDir: root.folder
+            }
             sorters: [
                 RoleSorter {
                     roleName: "isDir"
@@ -59,6 +58,12 @@ Pane {
                     roleName: "isHidden"
                     value: false
                     enabled: !d.showHiddenFiles
+                },
+                RegExpFilter {
+                    pattern: `*${typeAheadArea.text}*`
+                    caseSensitivity: btnMatchCase.checked ? Qt.CaseSensitive : Qt.CaseInsensitive
+                    syntax: RegExpFilter.Wildcard
+                    enabled: !!pattern && typeAheadArea.visible
                 }
             ]
         }
@@ -80,7 +85,7 @@ Pane {
                 text: "&sum;&thinsp;%L1".arg(d.proxyModel.count)
             }
             QfmToolButton {
-                icon.source: "../../icons/visibility_off.svg"
+                icon.source: "qrc:/qt/qml/QfmCore/icons/visibility_off.svg"
                 checkable: true
                 checked: d.showHiddenFiles
                 onToggled: d.showHiddenFiles = checked
@@ -125,11 +130,31 @@ Pane {
                 height: listview.height
                 policy: ScrollBar.AsNeeded
             }
+
+            Keys.onPressed: function(event) {
+                /*if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return) {
+                    console.warn("!!! ENTER PRESSED")
+                    event.accept = true
+                    if (!!currentItem)
+                        currentItem.activate()
+                }*/
+                if (((event.modifiers & Qt.ControlModifier) || (event.modifiers & Qt.AltModifier)) && event.key === Qt.Key_S) { // Ctrl+S or Alt+S
+                    event.accepted = true
+                    if (!typeAheadArea.visible)
+                        typeAheadArea.open()
+                    else {
+                        typeAheadArea.forceActiveFocus()
+                        // TODO cycle search
+                    }
+                }
+            }
+            Keys.onEscapePressed: typeAheadArea.close()
         }
         Separator {}
         RowLayout {
             Layout.fillWidth: true
             Layout.margins: 8
+            visible: !typeAheadArea.visible
             Label {
                 Layout.fillWidth: true
                 verticalAlignment: Text.AlignVCenter
@@ -148,6 +173,50 @@ Pane {
                 verticalAlignment: Text.AlignVCenter
                 text: listview.currentItem?.permissionsString ?? "???"
                 font.weight: Font.Medium
+            }
+        }
+        TextField {
+            Layout.fillWidth: true
+            Layout.margins: 8
+
+            id: typeAheadArea
+            visible: false
+            placeholderText: "/"
+            onAccepted: close()
+
+            Keys.onEscapePressed: close()
+            Keys.onUpPressed: {
+                listview.forceActiveFocus()
+                listview.decrementCurrentIndex()
+            }
+            Keys.onDownPressed: {
+                listview.forceActiveFocus()
+                listview.incrementCurrentIndex()
+            }
+
+            function open() {
+                clear()
+                visible = true
+                forceActiveFocus()
+            }
+
+            function close() {
+                listview.forceActiveFocus()
+                listview.positionViewAtIndex(listview.currentIndex, ListView.Beginning)
+                visible = false
+            }
+
+            QfmToolButton {
+                id: btnMatchCase
+                anchors.right: parent.right
+                anchors.rightMargin: parent.rightPadding
+                anchors.verticalCenter: parent.verticalCenter
+                checked: true
+                checkable: true
+                icon.source: checked ? "qrc:/qt/qml/QfmCore/icons/match_case.svg" : "qrc:/qt/qml/QfmCore/icons/match_case_off.svg"
+
+                ToolTip.visible: hovered
+                ToolTip.text: checked ? qsTr("Case sensitive") : qsTr("Case insensitive")
             }
         }
     }
@@ -197,12 +266,12 @@ Pane {
             }
         }
 
-        // onClicked: {
-        //     ListView.view.forceActiveFocus()
-        //     ListView.view.currentIndex = index
-        // }
+        function selectItem() {
+            ListView.view.forceActiveFocus()
+            ListView.view.currentIndex = index
+        }
 
-        onClicked: {
+        function activateItem() {
             ListView.view.forceActiveFocus()
 
             if (!model.isReadable)
@@ -216,6 +285,10 @@ Pane {
                 Qt.openUrlExternally(model.url)
             }
         }
+
+        onClicked: activateItem()
+        //onClicked: selectItem()
+        //onDoubleClicked: activateItem()
     }
 
     component HeaderButton: QfmFileListHeaderButton {
