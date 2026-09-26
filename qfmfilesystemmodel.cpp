@@ -24,6 +24,7 @@ constexpr auto kRoleIsReadable = "isReadable";
 constexpr auto kRoleIsExecutable = "isExecutable";
 constexpr auto kRoleIsHidden = "isHidden";
 constexpr auto kRolePermissionsString = "permissionsString";
+constexpr auto kRoleIsSelected = "isSelected";
 
 auto entryIcon(const QFileInfo& entry) {
   if (entry.isDir()) {
@@ -46,10 +47,11 @@ auto entryIcon(const QFileInfo& entry) {
 }
 
 constexpr auto permissionsToString = [](QFile::Permissions perms) {
+  constexpr auto r = "r"_L1, w = "w"_L1, x = "x"_L1, _ = "_"_L1;
   return QLatin1StringView("u[%1%2%3] g[%4%5%6] a[%7%8%9]")
-      .arg(perms.testFlag(QFileDevice::ReadUser) ? "r" : "_", perms.testFlag(QFileDevice::WriteUser) ? "w" : "_", perms.testFlag(QFileDevice::ExeUser) ? "x" : "_",
-           perms.testFlag(QFileDevice::ReadGroup) ? "r" : "_", perms.testFlag(QFileDevice::WriteGroup) ? "w" : "_", perms.testFlag(QFileDevice::ExeGroup) ? "x" : "_",
-           perms.testFlag(QFileDevice::ReadOther) ? "r" : "_", perms.testFlag(QFileDevice::WriteOther) ? "w" : "_", perms.testFlag(QFileDevice::ExeOther) ? "x" : "_"
+      .arg(perms.testFlag(QFileDevice::ReadUser) ? r : _, perms.testFlag(QFileDevice::WriteUser) ? w : _, perms.testFlag(QFileDevice::ExeUser) ? x : _,
+           perms.testFlag(QFileDevice::ReadGroup) ? r : _, perms.testFlag(QFileDevice::WriteGroup) ? w : _, perms.testFlag(QFileDevice::ExeGroup) ? x : _,
+           perms.testFlag(QFileDevice::ReadOther) ? r : _, perms.testFlag(QFileDevice::WriteOther) ? w : _, perms.testFlag(QFileDevice::ExeOther) ? x : _
            );
 };
 }
@@ -59,6 +61,57 @@ QfmFilesystemModel::QfmFilesystemModel(QObject *parent)
 {
   connect(this, &QfmFilesystemModel::baseDirChanged, this, &QfmFilesystemModel::fetchDir);
   connect(&m_fsWatcher, &QFileSystemWatcher::directoryChanged, this, &QfmFilesystemModel::fetchDir);
+  connect(this, &QfmFilesystemModel::selectedFilesChanged, this, [&](const QStringList& fileNamesChanged) {
+    //qWarning() << "!!! SELECTED FILES:" << fileNamesChanged << m_selectedFiles;
+    updateAndEmitSelected(fileNamesChanged);
+  });
+}
+
+void QfmFilesystemModel::addSelectedFile(const QString &fileName)
+{
+  if (fileName.isEmpty())
+    return;
+  if (m_selectedFiles.insert(fileName) != m_selectedFiles.cend())
+    emit selectedFilesChanged({fileName});
+}
+
+void QfmFilesystemModel::removeSelectedFile(const QString &fileName)
+{
+  if (m_selectedFiles.remove(fileName))
+    emit selectedFilesChanged({fileName});
+}
+
+void QfmFilesystemModel::toggleSelectedFile(const QString &fileName)
+{
+  if (m_selectedFiles.contains(fileName))
+    removeSelectedFile(fileName);
+  else
+    addSelectedFile(fileName);
+}
+
+void QfmFilesystemModel::clearSelectedFiles()
+{
+  if (m_selectedFiles.isEmpty())
+    return;
+  m_selectedFiles.clear();
+  emit selectedFilesChanged({});
+}
+
+void QfmFilesystemModel::updateAndEmitSelected(const QStringList& fileNamesChanged)
+{
+  if (fileNamesChanged.isEmpty())
+    return;
+
+  constexpr auto changeRole = QfmFilesystemModel::Roles::isSelected;
+  const auto count = m_entries.count();
+
+  for (qsizetype i = 0; i < count; i++) {
+    const auto& entry = m_entries.at(i);
+    if (fileNamesChanged.contains(entry.fileName())) {
+      const auto idx = index(i);
+      emit dataChanged(idx, idx, {changeRole});
+    }
+  }
 }
 
 int QfmFilesystemModel::rowCount(const QModelIndex &parent) const
@@ -110,6 +163,8 @@ QVariant QfmFilesystemModel::data(const QModelIndex &index, int role) const
     return entry.isHidden();
   case permissionsString:
     return permissionsToString(entry.permissions());
+  case isSelected:
+    return m_selectedFiles.contains(entry.fileName());
   }
 
   return {};
@@ -135,6 +190,7 @@ QHash<int, QByteArray> QfmFilesystemModel::roleNames() const
       {QfmFilesystemModel::Roles::isExecutable, kRoleIsExecutable},
       {QfmFilesystemModel::Roles::isHidden, kRoleIsHidden},
       {QfmFilesystemModel::Roles::permissionsString, kRolePermissionsString},
+      {QfmFilesystemModel::Roles::isSelected, kRoleIsSelected},
   };
   return roles;
 }
@@ -148,6 +204,8 @@ void QfmFilesystemModel::fetchDir()
 
   setLoading(true);
   beginResetModel();
+
+  clearSelectedFiles();
 
   m_entries.clear();
   //qWarning() << "!!! ITERATING:" << m_baseDir;
@@ -199,4 +257,9 @@ void QfmFilesystemModel::setLoading(bool newLoading)
     return;
   m_loading = newLoading;
   emit loadingChanged();
+}
+
+QStringList QfmFilesystemModel::selectedFiles() const
+{
+  return {m_selectedFiles.cbegin(), m_selectedFiles.cend()};
 }

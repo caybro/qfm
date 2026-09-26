@@ -12,6 +12,7 @@ class QfmFilesystemModel : public QAbstractListModel
 
   Q_PROPERTY(QString baseDir READ baseDir WRITE setBaseDir NOTIFY baseDirChanged FINAL)
   Q_PROPERTY(bool loading READ loading NOTIFY loadingChanged FINAL)
+  Q_PROPERTY(QStringList selectedFiles READ selectedFiles NOTIFY selectedFilesChanged FINAL)
 
  public:
   QfmFilesystemModel(QObject *parent = nullptr);
@@ -34,12 +35,19 @@ class QfmFilesystemModel : public QAbstractListModel
     isExecutable,
     isHidden,
     permissionsString,
+    isSelected,
   };
   Q_ENUM(Roles);
+
+  Q_INVOKABLE void addSelectedFile(const QString& fileName);
+  Q_INVOKABLE void removeSelectedFile(const QString& fileName);
+  Q_INVOKABLE void toggleSelectedFile(const QString& fileName);
+  Q_INVOKABLE void clearSelectedFiles();
 
  signals:
   void baseDirChanged();
   void loadingChanged();
+  void selectedFilesChanged(const QStringList& fileNamesChanged);
 
  protected:
   int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -59,4 +67,8 @@ class QfmFilesystemModel : public QAbstractListModel
   bool m_loading{false};
   bool loading() const;
   void setLoading(bool newLoading);
+
+  QSet<QString> m_selectedFiles;
+  QStringList selectedFiles() const;
+  void updateAndEmitSelected(const QStringList& fileNamesChanged);
 };

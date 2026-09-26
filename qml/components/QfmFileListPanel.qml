@@ -17,7 +17,11 @@ Pane {
 
     property alias listview: listview
 
-    onFolderChanged: listview.currentIndex = 0
+    onFolderChanged: {
+        if (typeAheadArea.visible)
+            typeAheadArea.close()
+        listview.currentIndex = 0
+    }
 
     leftPadding: 2
     rightPadding: 2
@@ -31,12 +35,14 @@ Pane {
         property bool ascendingSortOrder: true
         property bool showHiddenFiles: true
 
+        readonly property QfmFilesystemModel baseModel: QfmFilesystemModel {
+            id: baseModel
+            baseDir: root.folder
+        }
+
         readonly property SortFilterProxyModel proxyModel: SortFilterProxyModel {
             id: proxyModel
-
-            sourceModel: QfmFilesystemModel {
-                baseDir: root.folder
-            }
+            sourceModel: d.baseModel
             sorters: [
                 RoleSorter {
                     roleName: "isDir"
@@ -84,7 +90,8 @@ Pane {
             }
             Label {
                 textFormat: Text.StyledText
-                text: "&sum;&thinsp;%L1".arg(d.proxyModel.count)
+                text: "&sum;&thinsp;%1%L2".arg(d.baseModel.selectedFiles.length > 0 ? "%L1/".arg(d.baseModel.selectedFiles.length) : "")
+                                          .arg(d.proxyModel.count)
             }
             QfmToolButton {
                 icon.source: "qrc:/qt/qml/QfmCore/icons/visibility_off.svg"
@@ -165,7 +172,8 @@ Pane {
                 } else if (event.key === Qt.Key_PageDown) {
                     event.accepted = true
                     movePage(1)
-                } else if (((event.modifiers & Qt.ControlModifier) || (event.modifiers & Qt.AltModifier)) && event.key === Qt.Key_S) { // Ctrl+S or Alt+S
+                } else if ((((event.modifiers & Qt.ControlModifier) || (event.modifiers & Qt.AltModifier)) && event.key === Qt.Key_S) || // Ctrl+S or Alt+S
+                           event.matches(StandardKey.Find)) {
                     event.accepted = true
                     if (!typeAheadArea.visible)
                         typeAheadArea.open()
@@ -173,6 +181,10 @@ Pane {
                         typeAheadArea.forceActiveFocus()
                         // TODO cycle search
                     }
+                } else if (event.key === Qt.Key_Insert) {
+                    const fileName = currentItem?.fileName ?? ""
+                    d.baseModel.toggleSelectedFile(fileName)
+                    listview.incrementCurrentIndex()
                 }
             }
             Keys.onEscapePressed: typeAheadArea.close()
@@ -252,9 +264,12 @@ Pane {
         required property var model
         required property int index
 
+        readonly property string fileName: model.fileName
         readonly property bool isSymlink: model.isSymlink
         readonly property string symlinkTarget: model.symlinkTarget
         readonly property string permissionsString: model.permissionsString
+
+        readonly property bool isSelected: model.isSelected
 
         width: ListView.view.width
         highlighted: ListView.view.activeFocus && ListView.isCurrentItem
@@ -267,7 +282,8 @@ Pane {
         icon.source: model.iconSource
         icon.width: 20
         icon.height: 20
-        icon.color: model.isReadable ? palette.text : palette.disabled.text
+        icon.color: model.isReadable ? (isSelected ? palette.accent : palette.text)
+                                     : palette.disabled.text
 
         background: Rectangle {
             color: {
@@ -313,11 +329,8 @@ Pane {
         function activate() {
             ListView.view.forceActiveFocus()
 
-            if (!model.isReadable)
+            if (!model.isReadable) // FIXME should be isExecutable for entering dirs
                 return
-
-            if (typeAheadArea.visible)
-                typeAheadArea.close()
 
             if (model.isDir) { // DIR
                 root.folder = model.filePath
