@@ -2,6 +2,7 @@
 
 #include <QAbstractListModel>
 #include <QFileInfo>
+#include <QFileSystemWatcher>
 #include <qqmlintegration.h>
 
 class QfmFilesystemModel : public QAbstractListModel
@@ -52,6 +53,8 @@ class QfmFilesystemModel : public QAbstractListModel
   QString m_baseDir;
   QString baseDir() const;
   void setBaseDir(const QString &newBaseDir);
+
+  QFileSystemWatcher m_fsWatcher;
 
   bool m_loading{false};
   bool loading() const;

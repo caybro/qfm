@@ -17,6 +17,8 @@ Pane {
 
     property alias listview: listview
 
+    onFolderChanged: listview.currentIndex = 0
+
     leftPadding: 2
     rightPadding: 2
     topPadding: 2
@@ -319,7 +321,6 @@ Pane {
 
             if (model.isDir) { // DIR
                 root.folder = model.filePath
-                ListView.view.currentIndex = 0
             } else { // FILE
                 ListView.view.currentIndex = index
                 Qt.openUrlExternally(model.url)

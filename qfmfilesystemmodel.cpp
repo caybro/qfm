@@ -58,7 +58,7 @@ QfmFilesystemModel::QfmFilesystemModel(QObject *parent)
     : QAbstractListModel(parent)
 {
   connect(this, &QfmFilesystemModel::baseDirChanged, this, &QfmFilesystemModel::fetchDir);
-  // TODO setup QFileSystemWatcher on the baseDir
+  connect(&m_fsWatcher, &QFileSystemWatcher::directoryChanged, this, &QfmFilesystemModel::fetchDir);
 }
 
 int QfmFilesystemModel::rowCount(const QModelIndex &parent) const
@@ -80,7 +80,7 @@ QVariant QfmFilesystemModel::data(const QModelIndex &index, int role) const
   case filePath:
     return entry.absoluteFilePath();
   case path:
-    return entry.absolutePath();
+    return QDir::cleanPath(entry.absolutePath());
   case url:
     return QUrl::fromLocalFile(entry.canonicalFilePath());
   case iconSource:
@@ -154,7 +154,7 @@ void QfmFilesystemModel::fetchDir()
   QDirIterator it(m_baseDir, QDir::Files | QDir::Dirs | QDir::Hidden | QDir::NoDotAndDotDot);
   while (it.hasNext()) {
     const auto fi = it.nextFileInfo();
-    //qWarning() << "!!! FOUND:" << it.fileName() << fi.canonicalFilePath();
+    //qWarning() << "!!! FOUND:" << it.fileName() << QDir::cleanPath(fi.absoluteFilePath());
     m_entries.append(fi);
   }
 
@@ -169,9 +169,22 @@ QString QfmFilesystemModel::baseDir() const
 
 void QfmFilesystemModel::setBaseDir(const QString &newBaseDir)
 {
+  if (newBaseDir.isEmpty())
+    return;
+
   if (m_baseDir == newBaseDir)
     return;
-  m_baseDir = newBaseDir;
+
+  const auto newDir = QDir::cleanPath(newBaseDir);
+
+  if (m_fsWatcher.directories().contains(m_baseDir)) {
+    const auto removeResult = m_fsWatcher.removePath(m_baseDir);
+    qWarning() << "!!! REMOVED FS WATCHER DIR:" << m_baseDir << "WITH RESULT" << removeResult;
+  }
+  const auto addResult = m_fsWatcher.addPath(newDir);
+  qWarning() << "!!! ADDED FS WATCHER DIR:" << newDir << "WITH RESULT" << addResult;
+
+  m_baseDir = newDir;
   emit baseDirChanged();
 }
 
