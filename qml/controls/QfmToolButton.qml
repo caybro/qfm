@@ -10,7 +10,7 @@ ToolButton {
     font.weight: down || checked || highlighted ? Font.DemiBold : Font.Normal
 
     background: Rectangle {
-        color: parent.down || parent.checked || parent.highlighted ? Qt.alpha(palette.highlight, 0.3)
+        color: parent.down || parent.checked || parent.highlighted ? Qt.alpha(palette.highlight, 0.25)
                                                                    : parent.hovered ? Qt.alpha(palette.highlight, 0.15) : "transparent"
     }
 

@@ -265,8 +265,18 @@ Pane {
         icon.source: model.iconSource
         icon.width: 20
         icon.height: 20
+        icon.color: model.isReadable ? palette.text : palette.disabled.text
 
-        enabled: model.isReadable // TODO custom `background`
+        background: Rectangle {
+            color: {
+                if (parent.down || parent.checked || parent.highlighted)
+                    return Qt.alpha(palette.highlight, 0.25)
+                if (parent.hovered)
+                    return Qt.alpha(palette.highlight, 0.15)
+
+                return "transparent"
+            }
+        }
 
         contentItem: RowLayout {
             spacing: delegate.spacing
@@ -274,19 +284,22 @@ Pane {
                 Layout.preferredWidth: delegate.icon.width
                 Layout.preferredHeight: delegate.icon.height
                 source: delegate.icon.source
-                color: filenameLabel.color
+                color: delegate.icon.color
             }
             TruncatedLabel {
                 id: filenameLabel
                 Layout.fillWidth: true
                 text: delegate.text
                 font.weight: delegate.model.isDir ? Font.Bold : Font.Normal
+                color: delegate.icon.color
             }
             Label {
                 text: Qt.locale().formattedDataSize(delegate.model.size, 2, Locale.DataSizeTraditionalFormat)
+                color: delegate.icon.color
             }
             Label {
                 text: delegate.model.modified.toLocaleString(Qt.locale(), Locale.ShortFormat) // TODO find a more suitable/compact format
+                color: delegate.icon.color
             }
         }
 
