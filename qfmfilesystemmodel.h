@@ -3,6 +3,7 @@
 #include <QAbstractListModel>
 #include <QFileInfo>
 #include <QFileSystemWatcher>
+#include <QJsonObject>
 #include <qqmlintegration.h>
 
 struct FileEntry {
@@ -18,7 +19,7 @@ class QfmFilesystemModel : public QAbstractListModel
   Q_PROPERTY(QString baseDir READ baseDir WRITE setBaseDir NOTIFY baseDirChanged FINAL)
   Q_PROPERTY(bool showHiddenFiles READ showHiddenFiles WRITE setShowHiddenFiles NOTIFY showHiddenFilesChanged FINAL)
   Q_PROPERTY(bool loading READ loading NOTIFY loadingChanged FINAL)
-  Q_PROPERTY(QStringList selectedFiles READ selectedFiles NOTIFY selectedFilesChanged FINAL)
+  Q_PROPERTY(QJsonObject selectedFiles READ selectedFiles NOTIFY selectedFilesChanged FINAL)
 
  public:
   QfmFilesystemModel(QObject *parent = nullptr);
@@ -75,7 +76,7 @@ class QfmFilesystemModel : public QAbstractListModel
   bool loading() const;
   void setLoading(bool newLoading);
 
-  QStringList selectedFiles() const;
+  QJsonObject selectedFiles() const;
 
   bool m_showHiddenFiles{false};
   bool showHiddenFiles() const;

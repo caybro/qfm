@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QDirIterator>
 #include <QUrl>
+#include <QJsonArray>
 
 using namespace Qt::Literals::StringLiterals;
 
@@ -50,7 +51,7 @@ auto entryIcon(const QFileInfo& entry) {
 
 constexpr auto permissionsToString = [](QFile::Permissions perms) {
   constexpr auto r = "r"_L1, w = "w"_L1, x = "x"_L1, _ = "_"_L1;
-  return QLatin1StringView("u[%1%2%3] g[%4%5%6] a[%7%8%9]")
+  return "u[%1%2%3] g[%4%5%6] a[%7%8%9]"_L1
       .arg(perms.testFlag(QFileDevice::ReadUser) ? r : _, perms.testFlag(QFileDevice::WriteUser) ? w : _, perms.testFlag(QFileDevice::ExeUser) ? x : _,
            perms.testFlag(QFileDevice::ReadGroup) ? r : _, perms.testFlag(QFileDevice::WriteGroup) ? w : _, perms.testFlag(QFileDevice::ExeGroup) ? x : _,
            perms.testFlag(QFileDevice::ReadOther) ? r : _, perms.testFlag(QFileDevice::WriteOther) ? w : _, perms.testFlag(QFileDevice::ExeOther) ? x : _
@@ -206,14 +207,14 @@ void QfmFilesystemModel::fetchDir()
   beginResetModel();
 
   m_entries.clear();
-  //qWarning() << "!!! ITERATING:" << m_baseDir;
+  qDebug() << "!!! ITERATING:" << m_baseDir;
   auto flags = QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot;
   if (m_showHiddenFiles)
     flags |= QDir::Hidden;
   QDirIterator it(m_baseDir, flags);
   while (it.hasNext()) {
     const auto fi = it.nextFileInfo();
-    //qWarning() << "!!! FOUND:" << it.fileName() << QDir::cleanPath(fi.absoluteFilePath());
+    qDebug() << "!!! FOUND:" << it.fileName() << QDir::cleanPath(fi.absoluteFilePath());
     m_entries.emplace_back(fi, false);
   }
 
@@ -237,11 +238,11 @@ void QfmFilesystemModel::setBaseDir(const QString &newBaseDir)
   const auto newDir = QDir::cleanPath(newBaseDir);
 
   if (m_fsWatcher.directories().contains(m_baseDir)) {
-    const auto removeResult = m_fsWatcher.removePath(m_baseDir);
-    qWarning() << "!!! REMOVED FS WATCHER DIR:" << m_baseDir << "WITH RESULT" << removeResult;
+    [[maybe_unused]] const auto removeResult = m_fsWatcher.removePath(m_baseDir);
+    qDebug() << "!!! REMOVED FS WATCHER DIR:" << m_baseDir << "WITH RESULT" << removeResult;
   }
-  const auto addResult = m_fsWatcher.addPath(newDir);
-  qWarning() << "!!! ADDED FS WATCHER DIR:" << newDir << "WITH RESULT" << addResult;
+  [[maybe_unused]] const auto addResult = m_fsWatcher.addPath(newDir);
+  qDebug() << "!!! ADDED FS WATCHER DIR:" << newDir << "WITH RESULT" << addResult;
 
   m_baseDir = newDir;
   emit baseDirChanged();
@@ -260,13 +261,20 @@ void QfmFilesystemModel::setLoading(bool newLoading)
   emit loadingChanged();
 }
 
-QStringList QfmFilesystemModel::selectedFiles() const
+QJsonObject QfmFilesystemModel::selectedFiles() const
 {
-  QStringList result;
+  QJsonObject result;
+  QJsonArray files;
+  qint64 totalBytes{0};
   for (const auto& entry: std::as_const(m_entries)) {
-    if (entry.selected)
-      result.emplace_back(entry.fi.fileName());
+    if (entry.selected) {
+      files.append(entry.fi.fileName());
+      totalBytes += entry.fi.size();
+    }
   }
+  result.insert("files"_L1, files);
+  result.insert("count"_L1, files.count());
+  result.insert("totalBytes"_L1, totalBytes);
   return result;
 }
 

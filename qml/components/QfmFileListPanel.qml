@@ -85,9 +85,12 @@ Pane {
             Label {
                 textFormat: Text.StyledText
                 text: {
-                    if (d.baseModel.selectedFiles.length > 0)
-                        return "&sum;&thinsp;%L1/%L2".arg(d.baseModel.selectedFiles.length).arg(d.proxyModel.count)
-                    return "&sum;&thinsp;%L1".arg(d.proxyModel.count)
+                    const fileCount = d.proxyModel.count
+                    if (d.baseModel.selectedFiles.count > 0)
+                        return "&sum;&thinsp;%L1 (%2)/%L3".arg(d.baseModel.selectedFiles.count)
+                                                          .arg(Qt.locale().formattedDataSize(d.baseModel.selectedFiles.totalBytes, 2, Locale.DataSizeTraditionalFormat))
+                                                          .arg(fileCount)
+                    return "&sum;&thinsp;%L1".arg(fileCount)
                 }
             }
             QfmToolButton {
@@ -195,10 +198,8 @@ Pane {
             Layout.fillWidth: true
             Layout.margins: 8
             visible: !typeAheadArea.visible
-            Label {
+            TruncatedLabel {
                 Layout.fillWidth: true
-                verticalAlignment: Text.AlignVCenter
-                elide: Text.ElideRight
                 text: {
                     const current = listview.currentItem
                     if (!current)
@@ -209,7 +210,6 @@ Pane {
                 font.weight: Font.Medium
             }
             Label {
-                verticalAlignment: Text.AlignVCenter
                 text: listview.currentItem?.permissionsString ?? "???"
                 font.weight: Font.Medium
             }
