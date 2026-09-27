@@ -13,7 +13,7 @@ Pane {
     property string folder: FileUtils.homePath
     property alias sortRoleName: d.sortRoleName
     property alias ascendingSortOrder: d.ascendingSortOrder
-    property alias showHiddenFiles: d.showHiddenFiles
+    property alias showHiddenFiles: d.baseModel.showHiddenFiles
 
     property alias listview: listview
 
@@ -33,7 +33,6 @@ Pane {
 
         property string sortRoleName: "fileName"
         property bool ascendingSortOrder: true
-        property bool showHiddenFiles: true
 
         readonly property QfmFilesystemModel baseModel: QfmFilesystemModel {
             id: baseModel
@@ -62,11 +61,6 @@ Pane {
                 }
             ]
             filters: [
-                ValueFilter {
-                    roleName: "isHidden"
-                    value: false
-                    enabled: !d.showHiddenFiles
-                },
                 RegExpFilter {
                     pattern: `*${typeAheadArea.text}*`
                     caseSensitivity: btnMatchCase.checked ? Qt.CaseSensitive : Qt.CaseInsensitive
@@ -90,14 +84,17 @@ Pane {
             }
             Label {
                 textFormat: Text.StyledText
-                text: "&sum;&thinsp;%1%L2".arg(d.baseModel.selectedFiles.length > 0 ? "%L1/".arg(d.baseModel.selectedFiles.length) : "")
-                                          .arg(d.proxyModel.count)
+                text: {
+                    if (d.baseModel.selectedFiles.length > 0)
+                        return "&sum;&thinsp;%L1/%L2".arg(d.baseModel.selectedFiles.length).arg(d.proxyModel.count)
+                    return "&sum;&thinsp;%L1".arg(d.proxyModel.count)
+                }
             }
             QfmToolButton {
                 icon.source: "qrc:/qt/qml/QfmCore/icons/visibility_off.svg"
                 checkable: true
-                checked: d.showHiddenFiles
-                onToggled: d.showHiddenFiles = checked
+                checked: d.baseModel.showHiddenFiles
+                onToggled: d.baseModel.showHiddenFiles = checked
                 ToolTip.visible: hovered
                 ToolTip.text: qsTr("Show hidden files")
             }
@@ -172,8 +169,7 @@ Pane {
                 } else if (event.key === Qt.Key_PageDown) {
                     event.accepted = true
                     movePage(1)
-                } else if ((((event.modifiers & Qt.ControlModifier) || (event.modifiers & Qt.AltModifier)) && event.key === Qt.Key_S) || // Ctrl+S or Alt+S
-                           event.matches(StandardKey.Find)) {
+                } else if ((((event.modifiers & Qt.ControlModifier) || (event.modifiers & Qt.AltModifier)) && event.key === Qt.Key_S)) {// Ctrl+S or Alt+S
                     event.accepted = true
                     if (!typeAheadArea.visible)
                         typeAheadArea.open()
@@ -182,9 +178,14 @@ Pane {
                         // TODO cycle search
                     }
                 } else if (event.key === Qt.Key_Insert) {
-                    const fileName = currentItem?.fileName ?? ""
-                    d.baseModel.toggleSelectedFile(fileName)
+                    d.baseModel.toggleSelectedFile(d.proxyModel.mapToSource(listview.currentIndex))
                     listview.incrementCurrentIndex()
+                } else if (event.key === Qt.Key_Plus) {
+                    d.baseModel.selectAllFiles() // TODO dialog to select an optional pattern
+                } else if (event.key === Qt.Key_Minus) {
+                    d.baseModel.clearSelectedFiles(); // TODO a dialog to deselect
+                } else if (event.key === Qt.Key_Asterisk) {
+                    d.baseModel.toggleAllFiles()
                 }
             }
             Keys.onEscapePressed: typeAheadArea.close()
@@ -198,14 +199,13 @@ Pane {
                 Layout.fillWidth: true
                 verticalAlignment: Text.AlignVCenter
                 elide: Text.ElideRight
-
                 text: {
-                    if (!listview.currentItem)
+                    const current = listview.currentItem
+                    if (!current)
                         return qsTr("N/A") // not ready or empty dir
-                    return listview.currentItem.isSymlink ? "%1 → %2".arg(listview.currentItem.text).arg(listview.currentItem.symlinkTarget)
-                                                          : listview.currentItem.text
+                    return current.isSymlink ? "%1 → %2".arg(current.text).arg(current.symlinkTarget)
+                                             : current.text
                 }
-
                 font.weight: Font.Medium
             }
             Label {
@@ -269,8 +269,6 @@ Pane {
         readonly property string symlinkTarget: model.symlinkTarget
         readonly property string permissionsString: model.permissionsString
 
-        readonly property bool isSelected: model.isSelected
-
         width: ListView.view.width
         highlighted: ListView.view.activeFocus && ListView.isCurrentItem
 
@@ -282,7 +280,7 @@ Pane {
         icon.source: model.iconSource
         icon.width: 20
         icon.height: 20
-        icon.color: model.isReadable ? (isSelected ? palette.accent : palette.text)
+        icon.color: model.isReadable ? (model.isSelected ? palette.accent : palette.text)
                                      : palette.disabled.text
 
         background: Rectangle {
@@ -345,6 +343,9 @@ Pane {
     }
 
     component HeaderButton: QfmFileListHeaderButton {
+        background: Rectangle {
+            color: "transparent"
+        }
         checked: d.sortRoleName === sortRoleName
         isDown: checked && d.ascendingSortOrder
         isUp: checked && !d.ascendingSortOrder

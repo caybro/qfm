@@ -6,8 +6,7 @@ ToolButton {
     icon.height: 16
     focusPolicy: Qt.NoFocus
 
-    font.pixelSize: 11
-    font.weight: down || checked || highlighted ? Font.DemiBold : Font.Normal
+    font.weight: down || checked || highlighted ? Font.Bold : Font.Normal
 
     background: Rectangle {
         color: parent.down || parent.checked || parent.highlighted ? Qt.alpha(palette.highlight, 0.25)
