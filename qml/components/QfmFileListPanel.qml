@@ -45,11 +45,10 @@ Pane {
             sorters: [
                 RoleSorter {
                     roleName: "isDir"
-                    sortOrder: Qt.DescendingOrder
-                    enabled: d.sortRoleName === "fileName"
+                    sortOrder: Qt.DescendingOrder // always dirs first
                 },
                 StringSorter {
-                    roleName: d.sortRoleName
+                    roleName: "fileName"
                     caseSensitivity: Qt.CaseSensitive
                     ascendingOrder: d.ascendingSortOrder
                     enabled: d.sortRoleName === "fileName"

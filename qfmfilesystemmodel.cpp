@@ -268,7 +268,7 @@ QJsonObject QfmFilesystemModel::selectedFiles() const
   qint64 totalBytes{0};
   for (const auto& entry: std::as_const(m_entries)) {
     if (entry.selected) {
-      files.append(entry.fi.fileName());
+      files.append(entry.fi.absoluteFilePath());
       totalBytes += entry.fi.size();
     }
   }
