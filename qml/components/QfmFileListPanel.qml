@@ -110,12 +110,12 @@ Pane {
                 title: qsTr("Name")
                 sortRoleName: "fileName"
             }
-            ToolSeparator {}
+            Separator { vertical: true }
             HeaderButton {
                 title: qsTr("Size")
                 sortRoleName: "size"
             }
-            ToolSeparator {}
+            Separator { vertical: true }
             HeaderButton {
                 title: qsTr("Last modified")
                 sortRoleName: "modified"
@@ -132,7 +132,9 @@ Pane {
             clip: true
             snapMode: ListView.SnapOneItem
 
-            delegate: FileListItemDelegate {}
+            delegate: QfmFileListItemDelegate {
+                onNavigateTo: directory => root.folder = directory
+            }
 
             ScrollBar.vertical: ScrollBar {
                 parent: root
@@ -258,89 +260,6 @@ Pane {
         }
     }
 
-    component FileListItemDelegate: ItemDelegate { // TODO separate component
-        id: delegate
-        required property var model
-        required property int index
-
-        readonly property string fileName: model.fileName
-        readonly property bool isSymlink: model.isSymlink
-        readonly property string symlinkTarget: model.symlinkTarget
-        readonly property string permissionsString: model.permissionsString
-
-        width: ListView.view.width
-        highlighted: ListView.view.activeFocus && ListView.isCurrentItem
-
-        horizontalPadding: 8
-        topPadding: 2
-        bottomPadding: 2
-
-        text: model.fileName
-        icon.source: model.iconSource
-        icon.width: 20
-        icon.height: 20
-        icon.color: model.isReadable ? (model.isSelected ? palette.accent : palette.text)
-                                     : palette.disabled.text
-
-        background: Rectangle {
-            color: {
-                if (parent.down || parent.checked || parent.highlighted)
-                    return Qt.alpha(palette.highlight, 0.25)
-                if (parent.hovered)
-                    return Qt.alpha(palette.highlight, 0.15)
-
-                return "transparent"
-            }
-        }
-
-        contentItem: RowLayout {
-            spacing: delegate.spacing
-            ColorImage {
-                Layout.preferredWidth: delegate.icon.width
-                Layout.preferredHeight: delegate.icon.height
-                source: delegate.icon.source
-                color: delegate.icon.color
-            }
-            TruncatedLabel {
-                id: filenameLabel
-                Layout.fillWidth: true
-                text: delegate.text
-                font.weight: delegate.model.isDir ? Font.Bold : Font.Normal
-                color: delegate.icon.color
-            }
-            Label {
-                text: Qt.locale().formattedDataSize(delegate.model.size, 2, Locale.DataSizeTraditionalFormat)
-                color: delegate.icon.color
-            }
-            Label {
-                text: delegate.model.modified.toLocaleString(Qt.locale(), Locale.ShortFormat) // TODO find a more suitable/compact format
-                color: delegate.icon.color
-            }
-        }
-
-        function select() {
-            ListView.view.forceActiveFocus()
-            ListView.view.currentIndex = index
-        }
-
-        function activate() {
-            ListView.view.forceActiveFocus()
-
-            if (!model.isReadable) // FIXME should be isExecutable for entering dirs
-                return
-
-            if (model.isDir) { // DIR
-                root.folder = model.filePath
-            } else { // FILE
-                ListView.view.currentIndex = index
-                Qt.openUrlExternally(model.url)
-            }
-        }
-
-        onClicked: select()
-        onDoubleClicked: activate()
-    }
-
     component HeaderButton: QfmFileListHeaderButton {
         background: Rectangle {
             color: "transparent"
@@ -356,8 +275,10 @@ Pane {
     }
 
     component Separator: Rectangle {
-        Layout.fillWidth: true
-        Layout.preferredHeight: 1
+        property bool vertical
+        Layout.fillWidth: !vertical
+        Layout.preferredHeight: vertical ? parent.height : 1
+        Layout.preferredWidth: vertical ? 1 : -1
         color: root.palette.button
     }
 }

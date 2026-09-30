@@ -36,6 +36,7 @@ qt_add_qml_module(${CMAKE_PROJECT_NAME}
       qml/controls/QfmToolbar.qml
       qml/controls/QfmToolButton.qml
       qml/controls/QfmFileListHeaderButton.qml
+      qml/controls/QfmFileListItemDelegate.qml
       qml/controls/TruncatedLabel.qml
       qml/components/BreadcrumbLabel.qml
       qml/components/QfmFileListPanel.qml

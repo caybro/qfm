@@ -4,37 +4,37 @@
 <context>
     <name>QfmFileListPanel</name>
     <message>
-        <location filename="../qml/components/QfmFileListPanel.qml" line="102"/>
+        <location filename="../qml/components/QfmFileListPanel.qml" line="101"/>
         <source>Show hidden files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/components/QfmFileListPanel.qml" line="111"/>
+        <location filename="../qml/components/QfmFileListPanel.qml" line="110"/>
         <source>Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/components/QfmFileListPanel.qml" line="116"/>
+        <location filename="../qml/components/QfmFileListPanel.qml" line="115"/>
         <source>Size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/components/QfmFileListPanel.qml" line="121"/>
+        <location filename="../qml/components/QfmFileListPanel.qml" line="120"/>
         <source>Last modified</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/components/QfmFileListPanel.qml" line="204"/>
+        <location filename="../qml/components/QfmFileListPanel.qml" line="207"/>
         <source>N/A</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/components/QfmFileListPanel.qml" line="257"/>
+        <location filename="../qml/components/QfmFileListPanel.qml" line="258"/>
         <source>Case sensitive</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/components/QfmFileListPanel.qml" line="257"/>
+        <location filename="../qml/components/QfmFileListPanel.qml" line="258"/>
         <source>Case insensitive</source>
         <translation type="unfinished"></translation>
     </message>
