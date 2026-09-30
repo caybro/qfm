@@ -56,6 +56,7 @@ ItemDelegate {
             Layout.fillWidth: true
             text: root.text
             font.weight: root.model.isDir ? Font.Bold : Font.Normal
+            font.italic: root.model.isSymlink
             color: root.icon.color
         }
         Label {

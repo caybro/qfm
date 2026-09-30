@@ -235,8 +235,7 @@ Pane {
                     const current = listview.currentItem
                     if (!current)
                         return qsTr("N/A") // not ready or empty dir
-                    return current.isSymlink ? "%1 → %2".arg(current.text).arg(current.symlinkTarget)
-                                             : current.text
+                    return current.isSymlink ? "→ " + current.symlinkTarget : current.text
                 }
                 font.weight: Font.Medium
             }
