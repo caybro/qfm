@@ -70,6 +70,20 @@ Pane {
         }
     }
 
+    TapHandler {
+        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad | PointerDevice.Stylus
+        acceptedButtons: Qt.BackButton
+        onTapped: cdUp()
+    }
+
+    function cdUp() {
+        const parentDir = FileUtils.parentDir(root.folder)
+        if (parentDir.toString() !== "") {
+            root.folder = parentDir
+            // TODO position currentIndex on the previous parent folder
+        }
+    }
+
     contentItem: ColumnLayout {
         spacing: 0
         RowLayout {
@@ -190,6 +204,22 @@ Pane {
                     d.baseModel.clearSelectedFiles(); // TODO a dialog to deselect
                 } else if (event.key === Qt.Key_Asterisk) {
                     d.baseModel.toggleAllFiles()
+                } else if (event.key === Qt.Key_Home) {
+                    if (event.modifiers & Qt.ControlModifier) {
+                        root.folder = FileUtils.homePath
+                        listview.currentIndex = 0
+                    } else {
+                        listview.currentIndex = 0
+                        listview.positionViewAtBeginning()
+                    }
+                } else if (event.key === Qt.Key_End) {
+                    listview.currentIndex = listview.count - 1
+                    listview.positionViewAtEnd()
+                } else if (event.key === Qt.Key_Backspace || event.key === Qt.Key_Left || event.matches(StandardKey.Back)) {
+                    root.cdUp()
+                } else if (event.key === Qt.Key_Slash && (event.modifiers & Qt.ControlModifier)) {
+                    root.folder = FileUtils.rootPath
+                    listview.currentIndex = 0
                 }
             }
             Keys.onEscapePressed: typeAheadArea.close()

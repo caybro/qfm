@@ -41,30 +41,6 @@ ApplicationWindow {
         property alias rightPanelShowHiddenFiles: rightPanel.showHiddenFiles
     }
 
-    function handleShortcut(event, panel) {
-        if (event.key === Qt.Key_Home) {
-            if (event.modifiers & Qt.ControlModifier) {
-                panel.folder = FileUtils.homePath
-                panel.listview.currentIndex = 0
-            } else {
-                panel.listview.currentIndex = 0
-                panel.listview.positionViewAtBeginning()
-            }
-        } else if (event.key === Qt.Key_End) {
-            panel.listview.currentIndex = panel.listview.count - 1
-            panel.listview.positionViewAtEnd()
-        } else if (event.key === Qt.Key_Backspace || event.key === Qt.Key_Left || event.matches(StandardKey.Back)) {
-            const parentDir = FileUtils.parentDir(panel.folder)
-            if (parentDir.toString() !== "") {
-                panel.folder = parentDir
-                panel.listview.currentIndex = 0 // TODO position currentIndex on the previous parent folder
-            }
-        } else if (event.key === Qt.Key_Slash && (event.modifiers & Qt.ControlModifier)) {
-            panel.folder = FileUtils.rootPath
-            panel.listview.currentIndex = 0
-        }
-    }
-
     SplitView {
         id: splitview
         anchors.fill: parent
@@ -75,14 +51,12 @@ ApplicationWindow {
             SplitView.preferredWidth: parent.width/2
             focus: true
             KeyNavigation.tab: rightPanel
-            Keys.onPressed: event => handleShortcut(event, leftPanel)
         }
         QfmFileListPanel {
             id: rightPanel
             SplitView.minimumWidth: 100
             SplitView.preferredWidth: parent.width/2
             KeyNavigation.tab: leftPanel
-            Keys.onPressed: event => handleShortcut(event, rightPanel)
         }
     }
 
