@@ -21,16 +21,26 @@ jobs:
             libxkbcommon-x11-0 \
             libxcb-cursor0 \
             ninja-build \
+            mold \
             xvfb
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
           version: '6.11.2'
+          host: 'linux'
+          target: 'desktop'
+          arch: 'linux_gcc_64'
           cache: true
 
+      - name: Setup Ninja
+        run: echo "CMAKE_GENERATOR=Ninja" >> $GITHUB_ENV
+
+      - name: Setup Mold
+        run: echo "LDFLAGS=$(echo $LDFLAGS) -fuse-ld=mold" >> $GITHUB_ENV
+
       - name: Configure
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
 
       - name: Build
         run: cmake --build build --target qfm
